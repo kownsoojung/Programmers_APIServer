@@ -82,18 +82,19 @@ public class App {
         @PostMapping("/echo")
         public ResponseEntity<?> echo(@RequestBody(required = false) Map<String, Object> body) {
             
-        	
+        	Map<String, String> map = new HashMap<>();
         	if (!body.containsKey("name") || !body.containsKey("message")) {
-                Map<String, String> map = new HashMap<>();
+                
                 map.put("error", "Invalid data format");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                return ResponseEntity
+                		.status(HttpStatus.BAD_REQUEST)
                         .body(map);
             }
+        	
+        	map.put("name", (String) body.get("name"));
+        	map.put("message", (String) body.get("message"));
 
-            EchoVo vo = new EchoVo();
-            vo.setEchoVo((String) body.get("name"), (String)body.get("message"));
-
-            return ResponseEntity.ok(vo);
+            return ResponseEntity.ok(map);
         }
     }
 }
