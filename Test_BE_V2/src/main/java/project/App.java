@@ -2,6 +2,8 @@ package project;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -38,22 +40,30 @@ public class App {
 
         @GetMapping("/api/reservation/search")
         // 여기에 코드를 작성하세요.
-        public ResponseEntity<?> login(@RequestParam(required = false) String customer_name ) {
+        public ResponseEntity<?> login(@RequestParam(required = false) String customerName) {
             try {
-                File file = new File(DATA_DIR + "/reservation.json");
-                List<CustomerVo> users = objectMapper.readValue(file, new TypeReference<List<CustomerVo>>() {});
-                if (customer_name == null || customer_name.isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("customerName is required");
+                List<CustomerVo> users = objectMapper.readValue(
+                        Files.readAllBytes(Paths.get(DATA_DIR, "reservation.json")),
+                        new TypeReference<List<CustomerVo>>() {
+                        });
+                System.out.println(users);
+
+                if (customerName == null || customerName.isEmpty()) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("error", "customerName is required");
+
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
                 }
-                
-                if (customer_name.equals("all")) {
+                if (customerName.equals("all")) {
                     users.sort(Comparator.comparing(CustomerVo::getCheckIn));
                     return ResponseEntity.ok(users);
                 }
+                else {
 
-                List<CustomerVo> findUser = users.stream().filter(u -> u.getCustomerName().contains(customer_name)).collect(Collectors.toList());
-                return ResponseEntity.ok(findUser);
+                    List<CustomerVo> findUser = users.stream().filter(u -> u.getCustomerName().contains(customerName)).collect(Collectors.toList());
+
+                    return ResponseEntity.ok(findUser);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
